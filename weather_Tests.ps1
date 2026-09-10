@@ -19,8 +19,9 @@ class MCPContractValidator{
     # We reuse this every time we call a tool, so we don't repeat ourselves.
      [string[]]$CliArgBase
 
-     # Stores the base command pieces used to launch the Inspector CLI.
+    # Stores the base command pieces used to launch the Inspector CLI.
     # We reuse this every time we call a tool, so we don't repeat ourselves.
+    # Constructor
 
     MCPContractValidator() {
         $this.CliArgBase = @("@modelcontextprotocol/inspector","--cli","uv","run",
@@ -58,7 +59,7 @@ class MCPContractValidator{
     # with a tick or cross next to each item, instead of just one big
     # pass/fail for everything at once.
 
-    [PSCustomObject[]]CheckKeysExist([PSCustomObject]$obj, [string[]]$expectedKeys,  [string[]]$parentKey){
+    [PSCustomObject[]]CheckKeysExist([PSCustomObject]$obj, [string[]]$expectedKeys,  [string]$parentKey){
 
         # This array will holds one row per key check.
         $report = @()
@@ -106,7 +107,7 @@ class MCPContractValidator{
 
     #checks if a key's actual value matches what we expect.
     # Used only for fields like "isError" where the value matters —
-    [PSCustomObject]Checkis_Error([PSCustomObject]$obj, [string]$key, [string[]]$expectedValue,  [string[]]$parentKey){
+    [PSCustomObject]Checkis_Error([PSCustomObject]$obj, [string]$key, [bool]$expectedValue, [string]$parentKey){
 
         $actualValue = $obj.$key
 
@@ -147,8 +148,7 @@ Describe "Weather MCP -- Response Structure Contract"{
 
 
 # One Context per tool (get_weather, get_forecast, get_alerts).
-# Each Context runs THREE checks, and every one of them is about the
-# SHAPE of the response
+# Each Context runs THREE checks, 
 #   1. Do the expected top-level keys exist?
 #   2. Do the expected keys exist inside content[0]?
 #   3. Did the call succeed (isError is false)?
@@ -159,7 +159,7 @@ Describe "Weather MCP -- Response Structure Contract"{
         It "has required top-level keys" {
 
             # Call the tool and get back the parsed JSON response
-            $response = $script:validator.CallTool("get_weather", "city = Mumbai")
+            $response = $script:validator.CallTool("get_weather", "city=Mumbai")
 
             # Check that "content", "structuredContent", "isError" all exist on $response.result 
             $report = $script:validator.CheckKeysExist(
@@ -179,7 +179,7 @@ Describe "Weather MCP -- Response Structure Contract"{
 
         It "content items have required keys" {
 
-            $response = $script:validator.CallTool("get_weather", "city = Mumbai")
+            $response = $script:validator.CallTool("get_weather", "city=Mumbai")
 
 
             # Same idea as the earlier one but one leve deeper - checking items inside "content" has both 
@@ -200,7 +200,7 @@ Describe "Weather MCP -- Response Structure Contract"{
 
         It "isError is False(tool call succeeded)" {
 
-            $response = $script:validator.CallTool("get_weather", "city = Mumbai")
+            $response = $script:validator.CallTool("get_weather", "city=Mumbai")
 
 
             # "isError" is part of the response ENVELOPE (like an HTTP status code) 
@@ -225,7 +225,7 @@ Describe "Weather MCP -- Response Structure Contract"{
         It "has required top-level keys" {
 
             # Call the tool and get back the parsed JSON response
-            $response = $script:validator.CallTool("get_forecast", "city = Mumbai")
+            $response = $script:validator.CallTool("get_forecast", "city=Mumbai")
 
             # Check that "content", "structuredContent", "isError" all exist on $response.result 
             $report = $script:validator.CheckKeysExist(
@@ -245,7 +245,7 @@ Describe "Weather MCP -- Response Structure Contract"{
 
         It "content items have required keys" {
 
-            $response = $script:validator.CallTool("get_forecast", "city = Mumbai")
+            $response = $script:validator.CallTool("get_forecast", "city=Mumbai")
 
 
             # Same idea as the earlier one but one leve deeper - checking items inside "content" has both 
@@ -266,7 +266,7 @@ Describe "Weather MCP -- Response Structure Contract"{
 
         It "isError is False(tool call succeeded)" {
 
-            $response = $script:validator.CallTool("get_forecast", "city = Mumbai")
+            $response = $script:validator.CallTool("get_forecast", "city=Mumbai")
 
 
             # "isError" is part of the response ENVELOPE (like an HTTP status code) 
