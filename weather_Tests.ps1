@@ -182,7 +182,7 @@ Describe "Weather MCP -- Response Structure Contract"{
             $response = $script:validator.CallTool("get_weather", "city=Mumbai")
 
 
-            # Same idea as the earlier one but one leve deeper - checking items inside "content" has both 
+            # Same idea as the earlier one but one level deeper - checking items inside "content" has both 
             # "type" and "text" keys.
             $report = $script:validator.CheckKeysExist(
                 $response.result.content[0],
