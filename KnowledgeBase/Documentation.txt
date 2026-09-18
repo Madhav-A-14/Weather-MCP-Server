@@ -1,0 +1,79 @@
+
+===================================================================================================================
+
+            MCP (Model Context Protocol) Documentation — Part 1: Weather MCP (Learning Phase)
+
+====================================================================================================================
+
+
+
+Goal:   Learn MCP fundamentals — architecture, how a server exposes tools, and how to test/validate an MCP 
+        server — cloning existing mcp server from github via mcpmarketplace.
+
+
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+Step 1 : Cloning Weather MCP Server from mcpmarketplace
+-------------------------------------------------------------
+
+Cloned an existing weather_mcp server from Github via MCPMarketplace inorder to understand how a mcp works.
+Server exposes 3 tools : get_weather, get_forecast and get_alerts. 
+Entry point is weather_server.py
+
+
+
+Step 2 : Testing via  MCP Inspector (Web UI) 
+-----------------------------------------
+
+Ran the server through MCP Inspector's Web interface to test whether all tools show up correctly, whether it
+accepts necessary inputs and return's responses. 
+
+
+Command used to launch Inspector in web mode:
+
+npx @modelcontextprotocol/inspector uv run weather_server.py
+
+
+
+
+Step 3 : Testing via MCP Inspector(CLI)
+-----------------------------------------
+
+Runnning the same server through same inspector but this time via command line interface(cli),
+repeating the same tool checks.
+
+Command pattern used:
+  npx @modelcontextprotocol/inspector --cli uv run weather_server.py --method tools/call 
+  --tool-name <tool> --tool-arg <arg> --format json
+
+  # Smoke test — confirm server + all 3 tools are visible
+
+		npx @modelcontextprotocol/inspector --cli uv run python weather_server.py --method tools/list
+
+	# get_weather
+
+		npx @modelcontextprotocol/inspector --cli uv run python weather_server.py --method tools/call --tool-name get_weather --tool-arg city=Mumbai --format json
+
+	# get_forecast
+
+		npx @modelcontextprotocol/inspector --cli uv run python weather_server.py --method tools/call --tool-name get_forecast --tool-arg city=Mumbai --format json
+
+	# get_alerts
+		npx @modelcontextprotocol/inspector --cli uv run python weather_server.py --method tools/call --tool-name get_alerts --tool-arg state=Kerala --format json
+	
+
+
+
+
+Step 4 : Adding weather mcp to Claude Desktop as connector
+----------------------------------------------------------------
+
+Connected the weather MCP server to Claude Desktop as a connector (via its MCP config) and tested 
+all three tools through actual conversation, not just Inspector. Confirmed the server works correctly as a real 
+MCP integration, not just in isolated testing — i.e. Claude Desktop could discover the tools and call 
+them successfully in response to natural-language queries.
+
+
+
+

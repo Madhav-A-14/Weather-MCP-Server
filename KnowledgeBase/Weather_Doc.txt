@@ -1,0 +1,162 @@
+==================================================================================================================
+
+                    MCP (Model Context Protocol) Documentation — Part 1: Weather MCP 
+
+==================================================================================================================
+
+
+A documentation on cloning a weather mcp server from GitHub via MCPMarketplace and validating end-to-end 
+starting with MCP Inspector's WebUI, then its CLI mode, followed by automated JSON structure checks with Pester,
+and finally connecting it with Claude Desktop.
+
+
+
+--------------------------------------------------------
+Step 1 : Cloning and Initial Setup
+--------------------------------------------------------
+
+I started with cloning an exisiting Weather MCP Server repository from Github onto my machine, which came with 
+weather_server.py as its entry point already implemented. The server exposes 3 tools :
+
+        - get_weather
+        - get_forecast
+        - get_alerts
+
+
+---------------------------------------------------------------
+Step 2 : Integrating with Claude Desktop 
+---------------------------------------------------------------
+
+The first step after cloning the weather mcp files was to connect it with an actual host application.
+This includes :-
+
+    - Registering the Weather MCP Server in Claude Desktop's server configuration file.
+
+    - After the above, restarting the Claude Desktop and confirming the server(weather mcp server) appeared 
+      in the list of connectors available and is connected.
+
+    - Prompting Claude with some sample queries(e.g., "what's the weather in Kochi right now?")
+      to test whether it chose the right tool for the  question and in right order, rather than answering from 
+      it own knowledge.
+
+
+
+-----------------------------------------------------------------------
+Step 3 : Testing MCP Server - WebUI and CLI 
+----------------------------------------------------------------------
+
+With the server being working completely fine after connecting it with CLaude Desktop, now proceeding with testing
+the Weather MCP Server with MCP Inspector - standard tool which is used for testing mcp server outside of a full 
+host application - tested in both WebUI and CLI modes.
+
+
+WEB UI MODE :   This launches a local browser interface where you can see the list of registered tools, 
+                upon clicking each tool shows their input schema, and can trigger each tool manually with inputs 
+                and check the JSON response recieved in real time.
+
+                    "npx @modelcontextprotocol/inspector uv run weather_server.py"
+
+                The above code launches MCP Inspector in WebUI wherein all tools(get_weather,get_forecast 
+                and get_alerts) are listed and each can be called and tested individually and gives back proper
+                JSON responses.
+
+
+CLI MODE    :   Runs the same Inspector engine directly from Terminal without a browser, allowing to list tools 
+                and call them with explicit arguments as single one shot commands,(you give a command, it 
+                executes and gives a json response and the process ends), used for scripted, repeated checks.
+
+            --  To list all the available tools in server 
+
+                "npx @modelcontextprotocol/inspector --cli uv run python weather_server.py --method tools/list" 
+
+
+            -- To call tools individually
+
+                -> get_weather
+
+                    "npx @modelcontextprotocol/inspector --cli uv run python weather_server.py --method tools/call --tool-name get_weather --tool-arg city=Kochi 
+" 
+
+                -> get_forecast
+
+                    "npx @modelcontextprotocol/inspector --cli uv run python weather_server.py --method tools/call --tool-name get_forecast --tool-arg city=Mumbai --format json"
+
+                
+                -> get_alerts
+
+                    "npx @modelcontextprotocol/inspector --cli uv run python weather_server.py --method tools/call --tool-name get_alerts --tool-arg state=CA --format json"
+
+
+
+                The above commands run the mcp server in CLI mode, where tools/list list all registered tools
+                (get_weather,get_forecast,get_alerts) as a JSON, and tools/call calls each tool 
+                individually(--tool-name) with arguments(--tool-arg), returning the same JSON response. 
+
+
+
+-----------------------------------------------------------------------
+Step 4 : Validating JSON Structure Response using Pester
+----------------------------------------------------------------------
+
+Once the tools were confirmed working with Claude Desktop and Inspector, the next step was to test the JSON 
+response being recieved while calling each tool.
+
+Pester is a testing framework for Powershell -- that lest you write scripts that automatically call something and
+check whether the results obtained matches the expected results, instead of checking it manually one by one. For 
+my purpose of validating the structure of the JSON response , wrote a Pester file which calls the Weather MCP 
+Server via Inspector CLI and validates the response through 4 checks. 
+
+
+How the Response is Obtained :
+-----------------------------
+
+A Powershell class MCPContractValidator is created. Its CallTool method runs the inspector cli codes for each 
+tool, then converts the response recieved back into a Powershell object  using ConvertFrom-Json. 
+
+
+    --> Check 1 : Top Level Keys Exist check
+    ------------------------------------------
+
+    Checks whether the result obtained contains all the 3 keys : content , structuredContent and isError.
+    Each key is checked individually and marked as PASS or FAIL, so a failure points to exactly which key is 
+    missing.
+
+
+    --> Check 2 : Content Key items exists
+    ------------------------------------------
+
+    Same check as the above, goes one level deeper, on result.content[0], and checks whether the content as both 
+    "type" and "text" keys inside.
+
+
+    --> Check 3 : Text value is actually a String
+    ---------------------------------------------
+
+    Beyond confirming whether "text" key exisit inside Content, this checks whether the value recieved is actually
+    a string, and not a null/number/ any other unexpected value — making sure the content block isn't just structurally 
+    present but actually holds usable, displayable text.
+
+
+    
+    --> Check 4 : isError is false
+    -------------------------------
+
+    Unlike other checks, this one checks the actual value inside isError, confirming it is False -— i.e., the 
+    tool call succeeded rather than silently returning an error inside an otherwise normal-looking response.
+
+
+This exercise gave me a solid, practical grounding in MCP — going from a cloned server, through host 
+integration and manual tool testing, to a structured automated check of the response itself.
+
+
+
+
+
+
+
+
+
+
+
+
+

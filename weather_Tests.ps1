@@ -121,6 +121,26 @@ class MCPContractValidator{
         }
         return $report
     }
+
+
+    # Confirming "text" key inside Conent is really a String, not a number or something else.
+
+    [PSCustomObject]CheckType([PSCustomObject]$obj, [string]$key, [string]$expectedType, [string]$parentKey){
+
+        $actualValue = $obj.$key
+        $actualType  = $actualValue.GetType().Name
+
+        $report = [PSCustomObject]@{
+                ParentKey = $parentKey
+                Key       = $key
+                Expected  = $expectedType
+                Actual    = $actualType
+                Status = if ($actualType -eq $expectedType) {"PASS"} else {"FAIL"}
+
+        }
+        return $report
+    }
+
 }
 
 # ---------------------------------------------------------------------------
@@ -198,6 +218,20 @@ Describe "Weather MCP -- Response Structure Contract"{
 
         }
 
+        It "text field is a String" {
+            $response = $script:validator.CallTool("get_weather", "city=Mumbai")
+
+            $report = $script:validator.CheckType(
+                $response.result.content[0],
+                "text",
+                "String",
+                "result.content[0]"
+            )
+            $report | Format-Table -AutoSize | Out-String | Write-Host
+
+            $report.Status | Should Be "PASS"
+        }
+
         It "isError is False(tool call succeeded)" {
 
             $response = $script:validator.CallTool("get_weather", "city=Mumbai")
@@ -264,6 +298,20 @@ Describe "Weather MCP -- Response Structure Contract"{
 
         }
 
+        It "text field is a String" {
+            $response = $script:validator.CallTool("get_forecast", "city=Mumbai")
+
+            $report = $script:validator.CheckType(
+                $response.result.content[0],
+                "text",
+                "String",
+                "result.content[0]"
+            )
+            $report | Format-Table -AutoSize | Out-String | Write-Host
+
+            $report.Status | Should Be "PASS"
+        }
+
         It "isError is False(tool call succeeded)" {
 
             $response = $script:validator.CallTool("get_forecast", "city=Mumbai")
@@ -328,6 +376,20 @@ Describe "Weather MCP -- Response Structure Contract"{
              $failures = $report | Where-Object {$_.Status -eq "FAIL"}
              $failures.Count | Should Be 0
 
+        }
+
+        It "text field is a String" {
+            $response = $script:validator.CallTool("get_alerts", "city=Mumbai")
+
+            $report = $script:validator.CheckType(
+                $response.result.content[0],
+                "text",
+                "String",
+                "result.content[0]"
+            )
+            $report | Format-Table -AutoSize | Out-String | Write-Host
+
+            $report.Status | Should Be "PASS"
         }
 
         It "isError is False(tool call succeeded)" {
